@@ -1,0 +1,6 @@
+# Dependências para o FastAPI proxy
+fastapi==0.108.0
+uvicorn==0.25.0
+
+# Dependências para usar o cliente Python localmente
+requests==2.31.0

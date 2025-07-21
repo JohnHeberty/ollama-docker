@@ -1,0 +1,45 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama-server
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_MODELS=/root/.ollama/models
+      - OLLAMA_NUM_PARALLEL=6          # 6 processos paralelos (deixa 2 núcleos para SO)
+      - OLLAMA_MAX_LOADED_MODELS=2     # 2 modelos em memória
+      - OLLAMA_FLASH_ATTENTION=1       # Otimização de atenção
+      - OLLAMA_NUM_THREAD=6            # 6 threads para processamento
+    deploy:
+      resources:
+        # limits:
+        #   cpus: '2.7'        # 6 de 8 núcleos (75% da CPU)
+        #   memory: 4G         # 6 de 8GB RAM (75% da RAM)
+        reservations:
+          cpus: '2.9'        # Mínimo 2 núcleos reservados
+          memory: 4G         # Mínimo 4GB RAM reservados
+    restart: unless-stopped
+
+  fastapi_proxy:
+    build: .
+    container_name: fastapi-proxy
+    ports:
+      - "8000:8000"
+    environment:
+      - OLLAMA_BASE_URL=http://ollama-server:11434
+    deploy:
+      resources:
+        limits:
+        #   cpus: '0.3'        # 0.3 núcleo para FastAPI
+        #   memory: 128M       # 128M é suficiente para FastAPI
+        # reservations:
+          cpus: '0.1'        # Mínimo 0.1 núcleos
+          memory: 32M        # Mínimo 32M
+    depends_on:
+      - ollama
+    restart: unless-stopped
+
+volumes:
+  ollama_data:
