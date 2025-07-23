@@ -123,13 +123,6 @@ curl http://localhost:8000/health
 | `GET`       | `/docs`               | Documentação automática FastAPI             |
 | `GET`       | `/ollama/{path}`      | Proxy genérico para qualquer endpoint Ollama |
 
-
-### Escolha modelo por Caso de Uso:
-- **Testes rápidos**: `tinyllama:latest`
-- **Análises precisas**: `qwen2:1.5b` ou `qwen3:1.7b` 
-- **Geração de código**: `deepcoder:1.5b`
-- **Conversação**: `tinydolphin:latest`
-
 ### Modelos Recomendados (Baixo Consumo < 4GB RAM)
 ```bash
 # Dentro do container Ollama
@@ -146,6 +139,12 @@ client.baixar_modelo("qwen2:1.5b")
 client.baixar_modelo("deepcoder:1.5b")
 client.baixar_modelo("qwen3:1.7b ")
 ```
+
+### Escolha modelo por Caso de Uso:
+- **Testes rápidos**: `tinyllama:latest`
+- **Análises precisas**: `qwen2:1.5b` ou `qwen3:1.7b` 
+- **Geração de código**: `deepcoder:1.5b`
+- **Conversação**: `tinydolphin:latest`
 
 ### Métricas de Performance
 ```python
