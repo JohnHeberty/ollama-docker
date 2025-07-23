@@ -3,6 +3,20 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+# Environment variables
+.env
+.env.local
+src/.env
+
+# Docker override files
+docker-compose.override.yml
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# VS Code settings
+.vscode/
+
 # C extensions
 *.so
 

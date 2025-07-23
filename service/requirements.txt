@@ -1,0 +1,7 @@
+# Dependências para o FastAPI proxy
+fastapi==0.108.0
+uvicorn==0.25.0
+pydantic==2.5.0
+
+# Dependências para comunicação HTTP
+requests==2.31.0

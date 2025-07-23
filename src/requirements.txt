@@ -1,6 +1,21 @@
-# Dependências para o FastAPI proxy
-fastapi==0.108.0
-uvicorn==0.25.0
+# Dependências para ferramentas externas (src/)
+# Instalar com: pip install -r requirements.txt
 
-# Dependências para usar o cliente Python localmente
+# Cliente HTTP
 requests==2.31.0
+
+# Processamento de PDF (opcional)
+PyPDF2==3.0.1
+pdfplumber==0.10.3
+pdfminer.six==20221105
+
+# Análise de dados
+pandas==2.1.4
+numpy==1.26.2
+
+# Progress bars e utilitários
+tqdm==4.66.1
+
+# Jupyter (para notebooks)
+jupyter==1.0.0
+ipykernel==6.27.1

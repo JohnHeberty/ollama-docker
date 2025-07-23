@@ -1,156 +1,12 @@
-# Ollama + FastAPI - Sistema Simplificado
+# Ollama + FastAPI - Sistema LLM Local
 
-Sistema completo para rodar modelos LLM localmente com Ollama e FastAPI como proxy transparente.
+Sistema para executar modelos de linguagem localmente usando Ollama em Docker com interface FastAPI, com
+monitoramnto de desempenho e inicio automatico otimizado conforme hardware.
 
-## 🎯 Funcionalidades
+## Teste de Fogo
 
-- **Ollama**: Servidor LLM rodando em container
-- **FastAPI Proxy**: API que atua como proxy transparente para o Ollama
-- **Prompts Externos**: Controle total dos prompts fora da aplicação
-- **Conversa Direta**: Comunicação direta com os modelos via API
-
-## 🚀 Início Rápido
-
-### Pré-requisitos
-- Docker e Docker Compose
-- Python 3.8+ (para o cliente)
-
-### Uma única linha para subir tudo:
-```bash
-# Do diretório raiz
-cd src && docker compose up -d
-
-# Ou diretamente no diretório src
-docker compose up -d
-```
-
-### Com script automático:
-```powershell
-# Windows PowerShell - Script básico
-.\src\start.ps1
-
-# Windows PowerShell - Script otimizado (recomendado)
-.\src\start_V2.ps1
-```
-
-### Alternativa via diretório src:
-```bash
-cd src
-docker compose up -d
-```
-
-## 📁 Estrutura do Projeto
-
-```
-ollama-docker/
-├── src/
-│   ├── Dockerfile              # Container da API FastAPI
-│   ├── compose.yml             # Orquestração dos serviços Docker
-│   ├── app.py                  # FastAPI Proxy (transparente)
-│   ├── requirements.txt        # Dependências Python
-│   ├── start.ps1               # Script básico de inicialização
-│   ├── start_V2.ps1           # Script otimizado com recursos
-│   └── test.json              # Arquivo para testes
-├── chat_client.py              # Cliente Python para teste
-├── example.ipynb              # Notebook Jupyter com exemplos
-├── LICENSE                    # Licença MIT
-├── .gitignore                 # Arquivos ignorados pelo Git
-└── README.md                  # Este arquivo
-```
-
-## 🌐 Endpoints
-
-### FastAPI Proxy (Porta 8000)
-- `GET /` - Status geral da API
-- `GET /health` - Status detalhado do sistema
-- `GET /models` - Listar modelos disponíveis (formato simplificado)
-- `GET /modelos` - Listar modelos disponíveis (formato completo)  
-- `POST /chat` - Conversa com contexto e timeout configurável
-- `POST /modelo/baixar` - Baixar novos modelos
-- `GET /docs` - Documentação automática FastAPI
-- `API /ollama/{path}` - Proxy genérico para qualquer endpoint Ollama
-
-### Ollama Direto (Porta 11434)
-- Acesso direto ao Ollama (opcional)
-
-## 💻 Uso via Cliente Python
-
-```python
-from chat_client import ChatClient
-
-# Inicializar cliente
-client = ChatClient()
-
-# Verificar status
-status = client.health_check()
-print(status)
-
-# Listar modelos
-modelos = client.listar_modelos()
-print(modelos)
-
-# Conversar com timeout configurável
-resposta = client.chat(
-    "Explique o que é transporte ferroviário",
-    modelo="tinyllama:latest",
-    timeout=300  # 5 minutos
-)
-print(resposta)
-
-# Baixar um modelo
-resultado = client.baixar_modelo("qwen2:1.5b", timeout=1800)
-print(resultado)
-```
-
-## 🎨 Prompts Externos - Filosofia
-
-O sistema foi projetado para **não ter lógica de prompts internos**. Toda a inteligência de prompt fica **fora** da aplicação:
-
-```python
-# Seus prompts personalizados
-prompt_extracao = f"""
-Você é um especialista em análise de dados de transporte.
-Extraia TODOS os dados do texto: {texto}
-Retorne em formato JSON estruturado.
-"""
-
-# Envio via proxy (sem modificação) com timeout
-resultado = client.chat(
-    mensagem=prompt_extracao,
-    modelo="tinyllama:latest",
-    temperature=0.1,
-    timeout=600  # 10 minutos
-)
-```
-
-### Vantagens:
-- ✅ **Controle total** sobre prompts
-- ✅ **Flexibilidade máxima** para diferentes casos de uso
-- ✅ **FastAPI só transita** dados sem modificar
-- ✅ **Facilidade de manutenção** e teste
-- ✅ **Reutilização** de prompts em diferentes contextos
-- ✅ **Timeout configurável** por requisição
-
-## 🔧 Instalação de Modelos
-
-```bash
-# Via container direto (recomendado)
-docker exec ollama-server ollama pull tinyllama
-
-# Via API FastAPI (programaticamente)
-curl -X POST http://localhost:8000/modelo/baixar \
-  -H "Content-Type: application/json" \
-  -d '{"name": "tinyllama:latest"}'
-
-# Verificar modelos instalados
-curl http://localhost:8000/models
-
-# Modelos recomendados para baixo consumo
-docker exec ollama-server ollama pull tinyllama:latest
-docker exec ollama-server ollama pull qwen2:1.5b
-docker exec ollama-server ollama pull deepcoder:1.5b
-docker exec ollama-server ollama pull stablelm2:1.6b
-```
+Os modelos recomendados neste `readme.md` foram testado em um notebook `tinkped` com `8Gb` de RAM sem placa de
+video com suporte para `CUDA`, e seu o processador é um `Ryzen 5 7535U`.
 
 ## 🏗️ Arquitetura
 
@@ -172,158 +28,263 @@ docker exec ollama-server ollama pull stablelm2:1.6b
 4. **Resposta** retorna sem modificações
 5. **Cliente** recebe resposta pura do modelo
 
+## 📁 Estrutura
+
+```
+ollama-docker/
+├── service/                    # 🐳 Serviço Docker
+│   ├── app.py                  # FastAPI proxy para Ollama
+│   ├── compose.yml             # Orquestração Docker
+│   ├── Dockerfile              # Build da API
+│   ├── entrypoint.sh           # Script de inicialização Ollama
+│   ├── requirements.txt        # Dependências Python do serviço
+│   ├── start.ps1               # Script básico PowerShell
+│   └── start_V2.ps1            # Script otimizado PowerShell
+│
+├── src/                        # 📊 Ferramentas Externas
+│   ├── chat_client.py          # Cliente Python para Jupyter
+│   ├── example.ipynb           # Notebook com exemplos
+│   ├── pdf_processor.py        # Processador de PDFs
+│   └── data/                   # Dados do projeto
+│       ├── external/           # PDFs originais
+│       ├── interim/            # Dados processados
+│       └── processed/          # Resultados finais
+│
+├── LICENSE                     # Licença MIT
+└── README.md                   # Esta documentação
+```
+
+## 🎯 Funcionalidades
+
+### 🐳 Serviço Docker (`/service/`)
+- **Ollama Server**: Modelos LLM rodando em container isolado
+- **FastAPI Proxy**: API RESTful para comunicação externa
+- **Auto-configuração**: Scripts PowerShell para inicialização automática
+- **Recursos Otimizados**: Configuração dinâmica baseada no hardware
+
+### 📊 Ferramentas Externas (`/src/`)
+- **Cliente Python**: Biblioteca para integração com Jupyter/Python
+- **Processador PDF**: Extração de dados de documentos ferroviários
+- **Notebook Interativo**: Exemplos práticos de uso
+- **Gerenciamento de Dados**: Estrutura organizada para projetos
+
+## 🚀 Setup Rápido
+
+### Pré-requisitos
+- Docker Desktop instalado e rodando
+- Python 3.8+ (para usar ferramentas em `/src/`)
+- PowerShell (para scripts automatizados)
+
+#### ⚙️ Configuração .env (OBRIGATÓRIA)
+
+O arquivo `src/.env` é **essencial** para o funcionamento correto:
+
+```bash
+# Configuração padrão (src/.env)
+FASTAPI_URL=http://localhost:8000
+OLLAMA_URL=http://localhost:11434
+DEFAULT_CHAT_TIMEOUT=300
+DEFAULT_DOWNLOAD_TIMEOUT=1800
+RECOMMENDED_MODELS=tinyllama:latest,qwen2:1.5b,phi:latest
+PDF_MAX_PAGES=100
+PDF_TIMEOUT=600
+DEBUG=True
+VERBOSE_LOGGING=True
+```
+
+### 1. Configurar ferramentas Python
+```bash
+cd src
+pip install -r requirements.txt
+copy .env.example .env
+```
+
+### 2. Iniciar serviços Docker
+```powershell
+.\service\start_V2.ps1
+```
+
+### 3. Testar
+```bash
+curl http://localhost:8000/health
+```
+
+## 🌐 Endpoints da API (Porta 8000)
+### Configurado no chat_client.py
+
+| Método HTTP | Endpoint              | Descrição                                   |
+|-------------|-----------------------|---------------------------------------------|
+| `GET`       | `/`                   | Status geral da API                         |
+| `GET`       | `/health`             | Verificação detalhada do sistema            |
+| `GET`       | `/models`             | Lista modelos disponíveis (formato simplificado) |
+| `GET`       | `/modelos`            | Lista modelos com detalhes completos        |
+| `POST`      | `/chat`               | Conversa com contexto e timeout configurável |
+| `POST`      | `/modelo/baixar`      | Download de novos modelos                   |
+| `GET`       | `/docs`               | Documentação automática FastAPI             |
+| `GET`       | `/ollama/{path}`      | Proxy genérico para qualquer endpoint Ollama |
+
+
+### Escolha modelo por Caso de Uso:
+- **Testes rápidos**: `tinyllama:latest`
+- **Análises precisas**: `qwen2:1.5b` ou `qwen3:1.7b` 
+- **Geração de código**: `deepcoder:1.5b`
+- **Conversação**: `tinydolphin:latest`
+
+### Modelos Recomendados (Baixo Consumo < 4GB RAM)
+```bash
+# Dentro do container Ollama
+docker exec ollama-server ollama pull tinyllama:latest     # 637MB - Ultra rápido
+docker exec ollama-server ollama pull tinydolphin:latest   # 637MB - Ultra rápido
+docker exec ollama-server ollama pull qwen2:1.5b           # 934MB - Equilibrado  
+docker exec ollama-server ollama pull deepcoder:1.5b       # 
+docker exec ollama-server ollama pull qwen3:1.7b           # 1.6GB - Microsoft
+
+# Via API (programaticamente)
+client.baixar_modelo("tinyllama:latest")
+client.baixar_modelo("tinydolphin:latest")
+client.baixar_modelo("qwen2:1.5b")
+client.baixar_modelo("deepcoder:1.5b")
+client.baixar_modelo("qwen3:1.7b ")
+```
+
+### Métricas de Performance
+```python
+# Tempo de resposta e tokens
+resultado = client.chat("Teste", timeout=60)
+print(f"Tempo: {resultado['tempo_resposta']}s")
+print(f"Tokens gerados: {resultado['tokens_gerados']}")
+print(f"Tokens do prompt: {resultado['tokens_prompt']}")
+```
+
+## 💻 Como Usar
+
+### No Jupyter Notebook
+```python
+import sys
+sys.path.append('../src')
+from chat_client import ChatClient
+
+client = ChatClient()  # Usa configurações do .env automaticamente
+
+# Chat simples
+resposta = client.chat("Explique IA em uma frase")
+print(resposta['resposta'])
+
+# Listar modelos
+modelos = client.listar_modelos()
+print(modelos)
+
+# Baixar modelo
+client.baixar_modelo("tinyllama:latest")
+```
+
+### Processamento de PDFs
+```python
+from pdf_processor import PDFReader
+
+pdf = PDFReader("data/external/documento.pdf")
+texto = pdf.extract_text_optimized()
+
+# Analisar com LLM
+resultado = client.chat(f"Resuma este texto: {texto[:2000]}")
+```
+
+## ⚙️ Configuração (.env)
+
+Arquivo `src/.env` com configurações principais:
+```bash
+FASTAPI_URL=http://localhost:8000
+DEFAULT_CHAT_TIMEOUT=300
+DEFAULT_DOWNLOAD_TIMEOUT=1800
+RECOMMENDED_MODELS=tinyllama:latest,qwen2:1.5b
+```
+
 ## ❓ Resolução de Problemas
 
 ### Container não inicia
 ```bash
 # Verificar logs
-cd src
-docker compose logs
+docker-compose logs
 
-# Reiniciar sistema
-docker compose down && docker compose up -d
-```
+# Recriar containers
+docker-compose down --volumes
+docker-compose up --build -d
 
-### Modelo não responde ou timeout
-```bash
-# Verificar se modelo existe
-curl http://localhost:8000/models
-
-# Baixar modelo se necessário
-docker exec ollama-server ollama pull tinyllama:latest
-
-# Verificar recursos do sistema (use script otimizado)
-.\src\start_V2.ps1
+# Verificar recursos
+docker stats
 ```
 
 ### API não responde
 ```bash
-# Verificar se containers estão rodando
-docker ps
+# Verificar portas
+netstat -an | findstr :8000
+netstat -an | findstr :11434
 
-# Verificar saúde da API
-curl http://localhost:8000/health
-
-# Verificar logs do FastAPI
-docker logs fastapi-proxy
+# Testar conectividade
+curl -v http://localhost:8000/health
+curl -v http://localhost:11434/api/tags
 ```
 
-### Para parar tudo
-```bash
-cd src
-docker compose down
-```
-
-### Otimização de Performance
-```bash
-# Use o script otimizado que aloca recursos adequadamente
-.\src\start_V2.ps1
-
-# Pre-carrega modelos em memória para melhor performance
-# Configure variáveis de ambiente no compose.yml para sua máquina
-```
-
-## 🎯 Casos de Uso
-
-### 1. Extração de Dados com Timeout
+### Modelo lento ou timeout
 ```python
-prompt = f"Extraia dados técnicos do texto: {texto_ferroviario}"
-dados = client.chat(
-    mensagem=prompt, 
-    modelo="tinyllama:latest", 
-    temperature=0.1,
-    timeout=300
-)
+# Aumentar timeout
+client.chat("pergunta", timeout=600)  # 10 minutos
+
+# Usar modelo mais leve
+client.chat("pergunta", modelo="tinyllama:latest")
+
+# Verificar recursos do sistema
+docker stats ollama-server
 ```
 
-### 2. Análise de Viabilidade
+## 🚦 Comandos Úteis
+
+### Docker
+```bash
+# Parar tudo
+docker-compose down
+
+# Reiniciar serviços
+docker-compose restart
+
+# Ver recursos em tempo real
+docker stats
+
+# Limpar sistema
+docker system prune -a
+```
+
+### Python/Jupyter
 ```python
-prompt = f"Analise viabilidade financeira: {dados_projeto}"
-analise = client.chat(
-    mensagem=prompt, 
-    modelo="qwen2:1.5b", 
-    temperature=0.3,
-    timeout=600
-)
+# Recarregar módulo modificado
+import importlib
+importlib.reload(chat_client)
+
+# Verificar versão das dependências  
+import requests
+print(requests.__version__)
 ```
 
-### 3. Geração de Relatórios
-```python
-prompt = f"Gere relatório executivo: {dados_completos}"
-relatorio = client.chat(
-    mensagem=prompt, 
-    modelo="tinyllama:latest", 
-    temperature=0.2,
-    timeout=900
-)
-```
-
-## 📓 Exemplo Interativo com Jupyter
-
-O projeto inclui um notebook Jupyter (`example.ipynb`) com exemplos práticos:
-
-- ✅ Configuração automática do cliente
-- ✅ Verificação de modelos disponíveis  
-- ✅ Download automático de modelos recomendados
-- ✅ Exemplos de análise de transporte ferroviário
-- ✅ Extração de dados estruturados para JSON
-- ✅ Testes com diferentes modelos de IA
+## 🔧 Instalação de Modelos
 
 ```bash
-# Abrir o notebook
-jupyter notebook example.ipynb
-```
+# Via container direto (recomendado)
+docker exec ollama-server ollama pull tinyllama
 
-## ⚙️ Configurações Avançadas
+# Via API FastAPI (programaticamente)
+curl -X POST http://localhost:8000/modelo/baixar \
+  -H "Content-Type: application/json" \
+  -d '{"name": "tinyllama:latest"}'
 
-### Otimização de Recursos
-O arquivo `compose.yml` inclui configurações para otimizar uso de CPU e RAM:
+# Verificar modelos instalados
+curl http://localhost:8000/models
 
-```yaml
-environment:
-  - OLLAMA_NUM_PARALLEL=6          # 6 processos paralelos
-  - OLLAMA_MAX_LOADED_MODELS=2     # 2 modelos em memória
-  - OLLAMA_FLASH_ATTENTION=1       # Otimização de atenção
-  - OLLAMA_NUM_THREAD=6            # 6 threads
-```
-
-### Scripts de Inicialização
-- **start.ps1**: Script básico para inicialização
-- **start_V2.ps1**: Script otimizado com verificação de recursos e pré-carregamento
-
-### Cliente Python Avançado
-O `chat_client.py` oferece:
-- ✅ Timeout configurável por requisição
-- ✅ Download automático de modelos
-- ✅ Tratamento de erros robusto
-- ✅ Informações detalhadas de performance
-
-## 🤖 Modelos Recomendados
-
-### Modelos de Baixo Consumo (< 3GB RAM)
-```bash
-# Ultra-leve e rápido (1.1B parâmetros)
+# Modelos recomendados para baixo consumo
 docker exec ollama-server ollama pull tinyllama:latest
-
-# Equilibrio entre velocidade e qualidade (1.5B parâmetros)  
 docker exec ollama-server ollama pull qwen2:1.5b
-docker exec ollama-server ollama pull qwen3:1.7b
-
-# Especializado em código
 docker exec ollama-server ollama pull deepcoder:1.5b
-
-# Modelo estável
-docker exec ollama-server ollama pull stablelm2:1.6b
-
-# Modelo conversacional
-docker exec ollama-server ollama pull tinydolphin:latest
+docker exec ollama-server ollama pull qwen3:1.7b
 ```
-
-### Escolha por Caso de Uso:
-- **Testes rápidos**: `tinyllama:latest`
-- **Análises precisas**: `qwen2:1.5b` ou `qwen3:1.7b` 
-- **Geração de código**: `deepcoder:1.5b`
-- **Conversação**: `tinydolphin:latest`
 
 ## 📊 Monitoramento
 
@@ -351,28 +312,30 @@ docker logs fastapi-proxy
 docker compose logs -f
 ```
 
+## 🤝 Contribuição
+
+1. Fork o projeto
+2. Crie uma branch (`git checkout -b feature/nova-funcionalidade`)
+3. Commit suas mudanças (`git commit -am 'Adiciona nova funcionalidade'`)
+4. Push para a branch (`git push origin feature/nova-funcionalidade`)
+5. Abra um Pull Request
+
+## 📞 Suporte e Links
+
+- **Documentação API**: http://localhost:8000/docs (quando rodando)
+- **GitHub Issues**: Para reportar bugs e sugestões
+- **Ollama Official**: https://ollama.ai/
+- **FastAPI Docs**: https://fastapi.tiangolo.com/
+
 ## 📝 Licença
 
 Este projeto está licenciado sob a **MIT License** - veja o arquivo [LICENSE](LICENSE) para detalhes.
-
-## 🤝 Contribuição
-
-Contribuições são bem-vindas! Por favor:
-
-1. Faça um Fork do projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
-
-## 📞 Suporte
-
-- **Issues**: [GitHub Issues](https://github.com/JohnHeberty/ollama-docker/issues)
-- **Documentação FastAPI**: http://localhost:8000/docs (quando rodando)
-- **Ollama Official**: https://ollama.ai/
+---
 
 ## 🎉 Agradecimentos
 
 - [Ollama](https://ollama.ai/) - Framework para LLMs locais
-- [FastAPI](https://fastapi.tiangolo.com/) - Framework web moderno e rápido
+- [FastAPI](https://fastapi.tiangolo.com/) - Framework web moderno
 - [Docker](https://www.docker.com/) - Plataforma de containerização
+resultado = client.baixar_modelo("qwen2:1.5b", timeout=1800)
+print(resultado)
