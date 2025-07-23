@@ -14,6 +14,15 @@ class ChatClient:
         self.base_url = base_url.rstrip('/')
         self.session = requests.Session()
         
+        # Desabilitar proxy para localhost
+        self.session.proxies = {
+            'http': None,
+            'https': None
+        }
+        
+        # Configurar trust_env para False para ignorar variáveis de ambiente de proxy
+        self.session.trust_env = False
+        
     def health_check(self) -> Dict[str, Any]:
         """Verifica status da API"""
         try:

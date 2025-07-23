@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.12-slim
 
 # Diretório de trabalho
 WORKDIR /app
@@ -15,9 +15,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copiar aplicação e scripts
-COPY app.py .
-COPY chat_client.py .
-COPY exemplo_prompts_externos.py .
+COPY . /app
 
 # Expor porta
 EXPOSE 8000
